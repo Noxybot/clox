@@ -1,0 +1,36 @@
+# .clang-format
+
+# BasedOnStyle: The base style to inherit from (e.g., "Google", "LLVM", "WebKit", "Chromium").
+# You can choose an existing style or configure custom options.
+BasedOnStyle: Google
+
+# AccessModifierOffset: Align access modifiers (public, private, protected) with the class name.
+AccessModifierOffset: -2
+
+# AlignConsecutiveAssignments: Align consecutive assignments vertically.
+AlignConsecutiveAssignments: true
+
+# AlignConsecutiveDeclarations: Align consecutive variable declarations vertically.
+AlignConsecutiveDeclarations: true
+
+# IndentWidth: The number of spaces for each level of indentation.
+IndentWidth: 4
+
+# TabWidth: The number of spaces to be considered as a tab.
+TabWidth: 4
+
+# UseTab: Use tabs instead of spaces for indentation (true or false).
+UseTab: false
+
+# ColumnLimit: The maximum line length (80 is common, but you can adjust it to your preference).
+ColumnLimit: 80
+
+# AllowShortIfStatementsOnASingleLine: Allow short if statements to be on a single line.
+AllowShortIfStatementsOnASingleLine: false
+
+# BreakBeforeBraces: Configure brace formatting (e.g., "Allman", "Stroustrup").
+# Allman style puts opening braces on a new line, Stroustrup style puts them on the same line.
+BreakBeforeBraces: Allman
+
+# AllowShortLoopsOnASingleLine: Allow short for/while loops to be on a single line.
+AllowShortLoopsOnASingleLine: false
