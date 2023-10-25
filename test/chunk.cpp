@@ -7,10 +7,10 @@ using namespace clox;
 TEST_CASE("Test chunk::write_chunk<std::uint8_t>")
 {
     chunk c;
-    c.write_chunk<std::uint8_t>(static_cast<std::uint8_t>(42), 1);
+    c.write_chunk<>(static_cast<std::uint8_t>(42), 1);
 
     REQUIRE(c.size() == 1);
-    REQUIRE(static_cast<int>(c.get_op_code(0)) == 42);
+    REQUIRE(*c.get_instruction(0) == 42);
 }
 
 TEST_CASE("Test chunk::write_chunk<OpCode>")
@@ -19,7 +19,7 @@ TEST_CASE("Test chunk::write_chunk<OpCode>")
     c.write_chunk<OpCode>(OpCode::OP_CONSTANT, 2);
 
     REQUIRE(c.size() == 1);
-    REQUIRE(c.get_op_code(0) == OpCode::OP_CONSTANT);
+    REQUIRE(static_cast<OpCode>(*c.get_instruction(0)) == OpCode::OP_CONSTANT);
 }
 
 TEST_CASE("Test chunk::add_constant and chunk::get_op_code")

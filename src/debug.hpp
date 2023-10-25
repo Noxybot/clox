@@ -11,6 +11,7 @@ class debug
 
   public:
     static void disassemble_chunk(const chunk& chunk, std::string_view name);
+    static void print_value(const clox::ValueType& val);
 };
 
 }  // namespace clox

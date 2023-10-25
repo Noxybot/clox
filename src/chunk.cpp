@@ -1,5 +1,4 @@
 #include "chunk.hpp"
-
 namespace clox
 {
 template <>
@@ -12,20 +11,26 @@ void chunk::write_chunk<std::uint8_t>(std::uint8_t code, int line)
 template <>
 void chunk::write_chunk<OpCode>(OpCode code, int line)
 {
-    write_chunk<std::uint8_t>(static_cast<std::uint8_t>(code), line);
+    write_chunk<>(static_cast<std::uint8_t>(code), line);
 }
 
-std::uint8_t chunk::add_constant(ValueType val)
+chunk::const_idx_t chunk::add_constant(ValueType val)
 {
     constants_.push_back(val);
     // TODO: overflow check?
     return constants_.size() - 1;
 }
 
-OpCode chunk::get_op_code(int idx) const noexcept(false)
+const std::uint8_t* chunk::get_instruction(int idx) const noexcept(false)
 {
-    return static_cast<OpCode>(code_.at(idx));
+    return &code_[idx];
 }
+
+ValueType chunk::get_constant(const_idx_t idx) const noexcept(false)
+{
+    return constants_[idx];
+}
+
 std::size_t chunk::size() const { return code_.size(); }
 
 }  // namespace clox
