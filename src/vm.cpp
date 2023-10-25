@@ -79,7 +79,7 @@ InterpretResult vm::run()
                 BINARY_OP(/);
                 break;
             case OpCode::OP_NEGATE:
-                stack_.push_back(-stack_pop());
+                stack_.back() = -stack_.back();
                 break;
         }
     }
