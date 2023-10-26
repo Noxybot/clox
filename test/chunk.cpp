@@ -1,4 +1,4 @@
-#include "../src/chunk.hpp"  // Include the header file that defines the chunk class and its dependencies
+#include "chunk.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 

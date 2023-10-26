@@ -16,27 +16,23 @@ endif()
 # Optional: Add additional compiler flags if needed
 # add_compile_options(-Wall -Wextra)
 
-
-# Optional: Include directories (e.g., header files)
-include_directories(
-    include
-)
-
 # Enable AddressSanitizer
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
 
 
-add_subdirectory(src)
+add_subdirectory(vm)
+add_subdirectory(scanner)
 add_subdirectory(test)
 
 # Add any additional libraries or dependencies
 # find_package(YourLibrary REQUIRED)
 
 # Create the executable from source files
-add_executable(clox src/main.cpp)
-target_link_libraries(clox PRIVATE clox_lib)
+add_executable(clox main.cpp)
+target_link_libraries(clox PRIVATE vm)
+
 
 # Add your test targets
 

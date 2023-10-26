@@ -23,10 +23,11 @@ class vm
 
   public:
     explicit vm(std::vector<chunk> chunks);
-    InterpretResult interpret();
+    InterpretResult interpret(std::string source);
     InterpretResult run();
 
   private:
+    void      compile();
     ValueType stack_pop();
 };
 

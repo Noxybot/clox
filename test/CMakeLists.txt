@@ -11,7 +11,7 @@ add_executable(tests
     chunk.cpp
 )
 
-target_link_libraries(tests PRIVATE clox_lib Catch2::Catch2WithMain)
+target_link_libraries(tests PRIVATE vm Catch2::Catch2WithMain)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(CTest)
