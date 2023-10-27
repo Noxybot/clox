@@ -22,8 +22,10 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
 
 
-add_subdirectory(vm)
 add_subdirectory(scanner)
+add_subdirectory(compiler)
+add_subdirectory(vm)
+
 add_subdirectory(test)
 
 # Add any additional libraries or dependencies

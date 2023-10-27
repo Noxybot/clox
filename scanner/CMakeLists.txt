@@ -1,8 +1,6 @@
 
 set(SOURCES src/scanner.cpp)
 
-include_directories(
-    include
-)
-
 add_library(scanner ${SOURCES})
+
+target_include_directories(scanner PUBLIC include)

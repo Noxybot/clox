@@ -1,0 +1,10 @@
+
+set(SOURCES src/compiler.cpp)
+
+include_directories(
+    include
+)
+
+add_library(compiler ${SOURCES})
+
+target_link_libraries(compiler PUBLIC scanner)

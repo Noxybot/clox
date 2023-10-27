@@ -27,7 +27,6 @@ class vm
     InterpretResult run();
 
   private:
-    void      compile();
     ValueType stack_pop();
 };
 

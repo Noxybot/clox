@@ -4,7 +4,7 @@
 
 using namespace clox;
 
-TEST_CASE("Test chunk::write_chunk<std::uint8_t>")
+TEST_CASE("chunk::write_chunk<std::uint8_t>", "[chunk]")
 {
     chunk c;
     c.write_chunk<>(static_cast<std::uint8_t>(42), 1);
@@ -13,7 +13,7 @@ TEST_CASE("Test chunk::write_chunk<std::uint8_t>")
     REQUIRE(*c.get_instruction(0) == 42);
 }
 
-TEST_CASE("Test chunk::write_chunk<OpCode>")
+TEST_CASE("chunk::write_chunk<OpCode>", "[chunk]")
 {
     chunk c;
     c.write_chunk<OpCode>(OpCode::OP_CONSTANT, 2);
@@ -22,7 +22,7 @@ TEST_CASE("Test chunk::write_chunk<OpCode>")
     REQUIRE(static_cast<OpCode>(*c.get_instruction(0)) == OpCode::OP_CONSTANT);
 }
 
-TEST_CASE("Test chunk::add_constant and chunk::get_op_code")
+TEST_CASE("chunk::add_constant and chunk::get_op_code", "[chunk]")
 {
     chunk        c;
     ValueType    constant_value = 3.14;
