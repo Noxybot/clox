@@ -2,14 +2,20 @@
 namespace clox
 {
 template <>
-void chunk::write_chunk<std::uint8_t>(std::uint8_t code, int line)
+void chunk::write_chunk<>(std::uint8_t code, int line)
 {
     code_.push_back(code);
     lines_.push_back(line);
 }
 
 template <>
-void chunk::write_chunk<OpCode>(OpCode code, int line)
+void chunk::write_chunk<>(OpCode code, int line)
+{
+    write_chunk<>(static_cast<std::uint8_t>(code), line);
+}
+
+template <>
+void chunk::write_chunk<>(std::byte code, int line)
 {
     write_chunk<>(static_cast<std::uint8_t>(code), line);
 }

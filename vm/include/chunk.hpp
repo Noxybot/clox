@@ -5,7 +5,7 @@
 
 namespace clox
 {
-enum class OpCode
+enum class OpCode : std::uint8_t
 {
     OP_CONSTANT,  // Has one operand - index in 'constants_' array of the chunk.
     OP_ADD,
@@ -24,7 +24,7 @@ class chunk
     std::vector<ValueType>    constants_;
     std::vector<int>          lines_;
 
-    using const_idx_t = std::uint8_t;
+    using const_idx_t = std::size_t;
 
   public:
     template <class T>
