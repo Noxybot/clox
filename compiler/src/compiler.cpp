@@ -8,8 +8,6 @@
 #include "rules.hpp"
 #include "scanner.hpp"
 
-#define DEBUG_PRINT_CODE
-
 namespace clox
 {
 

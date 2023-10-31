@@ -5,8 +5,6 @@
 #include "chunk.hpp"
 #include "debug.hpp"
 
-#define DEBUG_TRACE_EXECUTION
-
 namespace clox
 {
 vm::vm(std::vector<chunk> chunks) : chunks_(std::move(chunks))
@@ -21,6 +19,10 @@ InterpretResult vm::interpret() { return run(); }
 
 InterpretResult vm::run()
 {
+#ifdef DEBUG_TRACE_EXECUTION
+    std::cout << "== run == \n" << std::endl;
+#endif
+
     const auto read_byte  = [this] { return *ip_++; };
     const auto read_const = [this, read_byte]
     { return current_chunk_->get_constant(read_byte()); };
@@ -36,9 +38,9 @@ InterpretResult vm::run()
     for (;;)
     {
 #ifdef DEBUG_TRACE_EXECUTION
-        // disassembleInstruction(vm.chunk,
-        //                        (int)(ip_ -
-        //                        current_chunk_->get_instruction(0)));
+        debug::disassemble_instruction(
+            *current_chunk_,
+            static_cast<int>(ip_ - current_chunk_->get_instruction(0)));
 
         std::cout << "          ";
         for (const auto& val : stack_)

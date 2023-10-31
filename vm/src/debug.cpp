@@ -36,6 +36,7 @@ void debug::disassemble_chunk(const chunk& chunk, std::string_view name)
     {
         offset = disassemble_instruction(chunk, offset);
     }
+    std::cout << std::endl;
 }
 
 int debug::disassemble_instruction(const chunk& chunk, int offset)

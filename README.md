@@ -20,16 +20,27 @@ Byte code based implementation of clox programming language. Only scanning, pars
 0010    | OP_ADD
 0011    | OP_RETURN
 
+== run ==
+
+0000    1 OP_CONSTANT      0000 '42'
+
 '42'
+0002    | OP_CONSTANT      0001 '42'
           [ '42' ]
 '42'
+0004    | OP_CONSTANT      0002 '42'
           [ '42' ][ '42' ]
 '42'
+0006    | OP_DIVIDE
           [ '42' ][ '42' ][ '42' ]
+0007    | OP_CONSTANT      0003 '42'
           [ '42' ][ '1' ]
 '42'
+0009    | OP_MULTIPLY
           [ '42' ][ '1' ][ '42' ]
+0010    | OP_ADD
           [ '42' ][ '42' ]
+0011    | OP_RETURN
           [ '84' ]
 '84'
 ```
