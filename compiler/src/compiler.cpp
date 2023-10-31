@@ -4,10 +4,75 @@
 #include <limits>
 
 #include "chunk.hpp"
+#include "debug.hpp"
+#include "rules.hpp"
 #include "scanner.hpp"
+
+#define DEBUG_PRINT_CODE
 
 namespace clox
 {
+
+parse_rule compiler::rules_[] = {
+    [static_cast<int>(TokenType::LEFT_PAREN)]  = {&compiler::grouping, nullptr,
+                                                  Precedence::NONE},
+    [static_cast<int>(TokenType::RIGHT_PAREN)] = {nullptr, nullptr,
+                                                  Precedence::NONE},
+    [static_cast<int>(TokenType::LEFT_BRACE)]  = {nullptr, nullptr,
+                                                  Precedence::NONE},
+    [static_cast<int>(TokenType::RIGHT_BRACE)] = {nullptr, nullptr,
+                                                  Precedence::NONE},
+    [static_cast<int>(TokenType::COMMA)] = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::DOT)]   = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::MINUS)] = {&compiler::unary, &compiler::binary,
+                                            Precedence::TERM},
+    [static_cast<int>(TokenType::PLUS)]  = {nullptr, &compiler::binary,
+                                            Precedence::TERM},
+    [static_cast<int>(TokenType::SEMICOLON)] = {nullptr, nullptr,
+                                                Precedence::NONE},
+    [static_cast<int>(TokenType::SLASH)]     = {nullptr, &compiler::binary,
+                                                Precedence::FACTOR},
+    [static_cast<int>(TokenType::STAR)]      = {nullptr, &compiler::binary,
+                                                Precedence::FACTOR},
+    [static_cast<int>(TokenType::BANG)] = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::BANG_EQUAL)] = {nullptr, nullptr,
+                                                 Precedence::NONE},
+    [static_cast<int>(TokenType::EQUAL)] = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::EQUAL_EQUAL)]   = {nullptr, nullptr,
+                                                    Precedence::NONE},
+    [static_cast<int>(TokenType::GREATER)]       = {nullptr, nullptr,
+                                                    Precedence::NONE},
+    [static_cast<int>(TokenType::GREATER_EQUAL)] = {nullptr, nullptr,
+                                                    Precedence::NONE},
+    [static_cast<int>(TokenType::LESS)] = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::LESS_EQUAL)] = {nullptr, nullptr,
+                                                 Precedence::NONE},
+    [static_cast<int>(TokenType::IDENTIFIER)] = {nullptr, nullptr,
+                                                 Precedence::NONE},
+    [static_cast<int>(TokenType::STRING)]     = {nullptr, nullptr,
+                                                 Precedence::NONE},
+    [static_cast<int>(TokenType::NUMBER)]     = {&compiler::number, nullptr,
+                                                 Precedence::NONE},
+    [static_cast<int>(TokenType::AND)]   = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::CLASS)] = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::ELSE)]  = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::FALSE)] = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::FOR)]   = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::FUN)]   = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::IF)]    = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::NIL)]   = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::OR)]    = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::PRINT)] = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::RETURN)] = {nullptr, nullptr,
+                                             Precedence::NONE},
+    [static_cast<int>(TokenType::SUPER)] = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::THIS)]  = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::TRUE)]  = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::VAR)]   = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::WHILE)] = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::ERROR)] = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::EOF_)]  = {nullptr, nullptr, Precedence::NONE},
+};
 
 struct parser
 {
@@ -32,6 +97,12 @@ std::optional<std::vector<chunk>> compiler::compile()
     if (parser.had_error)
     {
         return std::nullopt;
+    }
+    else
+    {
+#ifdef DEBUG_PRINT_CODE
+        debug::disassemble_chunk(current_chunk(), "code");
+#endif
     }
     return std::move(chunks_);
 }
@@ -92,15 +163,43 @@ void compiler::unary()
     }
 }
 
-void compiler::parse_precedence(Precedence precedence) {}
+void compiler::parse_precedence(Precedence precedence)
+{
+    advance();
+    const auto prefix_rule = get_rule(parser.previous.type)->prefix;
+    if (prefix_rule == nullptr)
+    {
+        error("Expect expression.");
+        return;
+    }
+    std::invoke(prefix_rule, this);
+    while (precedence <= get_rule(parser.current.type)->precedence)
+    {
+        advance();
+        const auto infix_rule = get_rule(parser.previous.type)->infix;
+        std::invoke(infix_rule, this);
+    }
+}
+
+const parse_rule* compiler::get_rule(TokenType type) const
+{
+    return &rules_[static_cast<int>(type)];
+}
 
 void compiler::end_compiler() { emit_return(); }
+
+void compiler::grouping()
+{
+    expression();
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
+}
 
 void compiler::binary()
 {
     const auto operator_type = parser.previous.type;
-    ParseRule* rule          = get_rule(operatorType);
-    parsePrecedence((Precedence)(rule->precedence + 1));
+    auto*      rule          = get_rule(operator_type);
+    parse_precedence(
+        static_cast<Precedence>(static_cast<int>(rule->precedence) + 1));
 
     switch (operator_type)
     {
@@ -140,8 +239,7 @@ void compiler::emit_constant(ValueType val)
 std::byte compiler::make_constant(ValueType val)
 {
     const auto constant = current_chunk().add_constant(val);
-    if (constant >
-        static_cast<decltype(constant)>(std::numeric_limits<std::byte>::max()))
+    if (constant > std::numeric_limits<std::uint8_t>::max())
     {
         error("Too many constants in one chunk.");
         return {};

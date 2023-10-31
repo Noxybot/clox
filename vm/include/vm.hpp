@@ -23,7 +23,7 @@ class vm
 
   public:
     explicit vm(std::vector<chunk> chunks);
-    InterpretResult interpret(std::string source);
+    InterpretResult interpret();
     InterpretResult run();
 
   private:

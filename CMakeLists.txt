@@ -33,7 +33,7 @@ add_subdirectory(test)
 
 # Create the executable from source files
 add_executable(clox main.cpp)
-target_link_libraries(clox PRIVATE vm)
+target_link_libraries(clox PRIVATE vm compiler)
 
 
 # Add your test targets

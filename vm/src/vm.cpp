@@ -17,7 +17,7 @@ vm::vm(std::vector<chunk> chunks) : chunks_(std::move(chunks))
         ip_            = current_chunk_->get_instruction(0);
     }
 }
-InterpretResult vm::interpret(std::string source) { return run(); }
+InterpretResult vm::interpret() { return run(); }
 
 InterpretResult vm::run()
 {

@@ -4,47 +4,35 @@
 #include <string_view>
 
 #include "chunk.hpp"
+#include "rules.hpp"
 #include "scanner.hpp"
 
 namespace clox
 {
-
-// From lowest to highest.
-enum class Precedence
-{
-    NONE,
-    ASSIGNMENT,  // =
-    OR,          // or
-    AND,         // and
-    EQUALITY,    // == !=
-    COMPARISON,  // < > <= >=
-    TERM,        // + -
-    FACTOR,      // * /
-    UNARY,       // ! -
-    CALL,        // . ()
-    PRIMARY
-};
-
 class compiler
 {
     scanner scanner_;
 
     std::vector<chunk> chunks_;
 
+    static parse_rule rules_[];
+
   public:
     explicit compiler(std::string source);
     std::optional<std::vector<chunk>> compile();
 
   private:
-    void advance();
-    void consume(TokenType type, std::string_view message);
-    void expression();
-    void groupping();
-    void number();
-    void unary();
-    void parse_precedence(Precedence precedence);
-    void end_compiler();
-    void binary();
+    void              advance();
+    void              consume(TokenType type, std::string_view message);
+    void              expression();
+    void              groupping();
+    void              number();
+    void              unary();
+    void              parse_precedence(Precedence precedence);
+    const parse_rule* get_rule(TokenType type) const;
+    void              end_compiler();
+    void              grouping();
+    void              binary();
 
     template <class... Args>
     void      emit_bytes(Args... bytes);

@@ -4,12 +4,12 @@
 #include <iostream>
 
 #include "chunk.hpp"
+#include "compiler.hpp"
 #include "debug.hpp"
 #include "vm.hpp"
 
 static void repl()
 {
-    clox::vm    vm{{}};
     std::string line;
     for (;;)
     {
@@ -20,8 +20,13 @@ static void repl()
             std::cout << std::endl;
             break;
         }
-
-        // interpret(line);
+        clox::compiler comp{std::move(line)};
+        auto           chunks = comp.compile();
+        if (chunks)
+        {
+            clox::vm vm{std::move(*chunks)};
+            vm.interpret();
+        }
     }
 }
 static int run_file(const std::filesystem::path& path)
