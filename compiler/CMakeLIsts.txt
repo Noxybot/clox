@@ -1,5 +1,5 @@
 
-set(SOURCES src/compiler.cpp)
+set(SOURCES src/compiler.cpp src/parser.cpp)
 
 add_library(compiler ${SOURCES})
 

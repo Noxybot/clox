@@ -72,27 +72,19 @@ parse_rule compiler::rules_[] = {
     [static_cast<int>(TokenType::EOF_)]  = {nullptr, nullptr, Precedence::NONE},
 };
 
-struct parser
-{
-    token current;
-    token previous;
-    bool  had_error;
-    bool  panic_mode;
-} parser;
-
 compiler::compiler(std::string source) : scanner_(std::move(source)) {}
 
 std::optional<std::vector<chunk>> compiler::compile()
 {
     chunks_.emplace_back();
-    parser.had_error  = false;
-    parser.panic_mode = false;
+    parser_.had_error  = false;
+    parser_.panic_mode = false;
 
     advance();
     expression();
     consume(TokenType::EOF_, "Expect end of expression.");
     end_compiler();
-    if (parser.had_error)
+    if (parser_.had_error)
     {
         return std::nullopt;
     }
@@ -107,27 +99,27 @@ std::optional<std::vector<chunk>> compiler::compile()
 
 void compiler::advance()
 {
-    parser.previous = parser.current;
+    parser_.previous = parser_.current;
 
     for (;;)
     {
-        parser.current = scanner_.scan_token();
-        if (parser.current.type != TokenType::ERROR)
+        parser_.current = scanner_.scan_token();
+        if (parser_.current.type != TokenType::ERROR)
         {
             break;
         }
-        error_at_current(parser.current.lexeme);
+        parser_.error_at_current(parser_.current.lexeme);
     }
 }
 
 void compiler::consume(TokenType type, std::string_view message)
 {
-    if (parser.current.type == type)
+    if (parser_.current.type == type)
     {
         advance();
         return;
     }
-    error_at_current(message);
+    parser_.error_at_current(message);
 }
 
 void compiler::expression() { parse_precedence(Precedence::ASSIGNMENT); }
@@ -140,12 +132,12 @@ void compiler::groupping()
 
 void compiler::number()
 {
-    const auto value = std::strtod(parser.previous.lexeme.data(), nullptr);
+    const auto value = std::strtod(parser_.previous.lexeme.data(), nullptr);
     emit_constant(value);
 }
 void compiler::unary()
 {
-    const auto operator_type = parser.previous.type;
+    const auto operator_type = parser_.previous.type;
 
     // Compile the operand.
     parse_precedence(Precedence::UNARY);
@@ -164,17 +156,17 @@ void compiler::unary()
 void compiler::parse_precedence(Precedence precedence)
 {
     advance();
-    const auto prefix_rule = get_rule(parser.previous.type)->prefix;
+    const auto prefix_rule = get_rule(parser_.previous.type)->prefix;
     if (prefix_rule == nullptr)
     {
-        error("Expect expression.");
+        parser_.error("Expect expression.");
         return;
     }
     std::invoke(prefix_rule, this);
-    while (precedence <= get_rule(parser.current.type)->precedence)
+    while (precedence <= get_rule(parser_.current.type)->precedence)
     {
         advance();
-        const auto infix_rule = get_rule(parser.previous.type)->infix;
+        const auto infix_rule = get_rule(parser_.previous.type)->infix;
         std::invoke(infix_rule, this);
     }
 }
@@ -194,7 +186,7 @@ void compiler::grouping()
 
 void compiler::binary()
 {
-    const auto operator_type = parser.previous.type;
+    const auto operator_type = parser_.previous.type;
     auto*      rule          = get_rule(operator_type);
     parse_precedence(
         static_cast<Precedence>(static_cast<int>(rule->precedence) + 1));
@@ -221,7 +213,7 @@ void compiler::binary()
 template <class... Args>
 void compiler::emit_bytes(Args... bytes)
 {
-    (current_chunk().write_chunk(bytes, parser.current.line), ...);
+    (current_chunk().write_chunk(bytes, parser_.current.line), ...);
 }
 
 void compiler::emit_return()
@@ -239,46 +231,12 @@ std::byte compiler::make_constant(ValueType val)
     const auto constant = current_chunk().add_constant(val);
     if (constant > std::numeric_limits<std::uint8_t>::max())
     {
-        error("Too many constants in one chunk.");
+        parser_.error("Too many constants in one chunk.");
         return {};
     }
     return static_cast<std::byte>(constant);
 }
 
 chunk& compiler::current_chunk() { return chunks_.back(); }
-
-void compiler::error(std::string_view message) const
-{
-    error_at(parser.previous, message);
-}
-
-void compiler::error_at_current(std::string_view message) const
-{
-    error_at(parser.current, message);
-}
-
-void compiler::error_at(const token& token, std::string_view message) const
-{
-    if (parser.panic_mode)
-    {
-        return;
-    }
-    parser.panic_mode = true;
-    std::cerr << std::format("[line {}] Error", token.line);
-    if (token.type == TokenType::EOF_)
-    {
-        std::cerr << " at end";
-    }
-    else if (token.type == TokenType::ERROR)
-    {
-        // Nothing.
-    }
-    else
-    {
-        std::cerr << std::format("at {}", token.lexeme);
-    }
-    std::cerr << std::format(": {}", message) << std::endl;
-    parser.had_error = true;
-}
 
 }  // namespace clox

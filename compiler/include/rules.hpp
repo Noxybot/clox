@@ -1,7 +1,4 @@
 #pragma once
-
-#include "scanner.hpp"
-
 namespace clox
 {
 class compiler;

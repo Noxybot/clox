@@ -4,6 +4,7 @@
 #include <string_view>
 
 #include "chunk.hpp"
+#include "parser.hpp"
 #include "rules.hpp"
 #include "scanner.hpp"
 
@@ -12,6 +13,7 @@ namespace clox
 class compiler
 {
     scanner scanner_;
+    parser  parser_;
 
     std::vector<chunk> chunks_;
 
@@ -41,10 +43,6 @@ class compiler
     std::byte make_constant(ValueType val);
 
     chunk& current_chunk();
-
-    void error(std::string_view message) const;
-    void error_at_current(std::string_view message) const;
-    void error_at(const token& token, std::string_view message) const;
 };
 
 }  // namespace clox
