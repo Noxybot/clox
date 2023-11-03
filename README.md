@@ -8,39 +8,36 @@ Byte code based implementation of clox programming language. Only scanning, pars
 ## Run REPL loop (compiler/VM are now on 'verbose' mode by default)
 ```bash
 ./run.sh
-> 42+42/42*42
+> !(5 - 4 > 3 * 2 == !nil)
 == code ==
 
-0000    1 OP_CONSTANT      0000 '42'
-0002    | OP_CONSTANT      0001 '42'
-0004    | OP_CONSTANT      0002 '42'
-0006    | OP_DIVIDE
-0007    | OP_CONSTANT      0003 '42'
+0000    1 OP_CONSTANT      0000 '5'
+0002    | OP_CONSTANT      0001 '4'
+0004    | OP_SUBTRACT
+0005    | OP_CONSTANT      0002 '3'
+0007    | OP_CONSTANT      0003 '2'
 0009    | OP_MULTIPLY
-0010    | OP_ADD
-0011    | OP_RETURN
+0010    | OP_GREATER
+0011    | OP_NIL
+0012    | OP_NOT
+0013    | OP_EQUAL
+0014    | OP_NOT
+0015    | OP_RETURN
 
 == run ==
 
-0000    1 OP_CONSTANT      0000 '42'
 
-'42'
-0002    | OP_CONSTANT      0001 '42'
-          [ '42' ]
-'42'
-0004    | OP_CONSTANT      0002 '42'
-          [ '42' ][ '42' ]
-'42'
-0006    | OP_DIVIDE
-          [ '42' ][ '42' ][ '42' ]
-0007    | OP_CONSTANT      0003 '42'
-          [ '42' ][ '1' ]
-'42'
+0000    1 OP_CONSTANT      0000 '5'
+          [ '5' ]
+0002    | OP_CONSTANT      0001 '4'
+          [ '5' ][ '4' ]
+0004    | OP_SUBTRACT
+          [ '1' ]
+0005    | OP_CONSTANT      0002 '3'
+          [ '1' ][ '3' ]
+0007    | OP_CONSTANT      0003 '2'
+          [ '1' ][ '3' ][ '2' ]
 0009    | OP_MULTIPLY
-          [ '42' ][ '1' ][ '42' ]
-0010    | OP_ADD
-          [ '42' ][ '42' ]
-0011    | OP_RETURN
-          [ '84' ]
-'84'
+          [ '1' ][ '6' ]
+0010    | OP_GREATER
 ```
