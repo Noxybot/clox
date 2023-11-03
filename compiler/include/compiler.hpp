@@ -27,7 +27,6 @@ class compiler
     void              advance();
     void              consume(TokenType type, std::string_view message);
     void              expression();
-    void              groupping();
     void              number();
     void              unary();
     void              parse_precedence(Precedence precedence);
@@ -35,6 +34,7 @@ class compiler
     void              end_compiler();
     void              grouping();
     void              binary();
+    void              literal();
 
     template <class... Args>
     void      emit_bytes(Args... bytes);

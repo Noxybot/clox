@@ -3,20 +3,27 @@
 #include <cstdint>
 #include <vector>
 
+#include "value.hpp"
+
 namespace clox
 {
 enum class OpCode : std::uint8_t
 {
     OP_CONSTANT,  // Has one operand - index in 'constants_' array of the chunk.
+    OP_NIL,
+    OP_TRUE,
+    OP_FALSE,
+    OP_EQUAL,
+    OP_GREATER,
+    OP_LESS,
     OP_ADD,
     OP_SUBTRACT,
     OP_MULTIPLY,
     OP_DIVIDE,
+    OP_NOT,
     OP_NEGATE,
     OP_RETURN,
 };
-
-using ValueType = double;
 
 class chunk
 {
@@ -33,6 +40,7 @@ class chunk
     const std::uint8_t* get_instruction(int idx) const noexcept(false);
     ValueType           get_constant(const_idx_t idx) const noexcept(false);
     std::size_t         size() const;
+    int                 line(std::size_t idx) const;
 
     friend class debug;
 };

@@ -13,10 +13,23 @@ static int simple_instruction(std::string_view name, int offset)
 
 namespace clox
 {
+template <class... Ts>
+struct overloaded : Ts...
+{
+    using Ts::operator()...;
+};
+// explicit deduction guide (not needed as of C++20)
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 void debug::print_value(const clox::ValueType& val)
 {
-    std::cout << std::format("'{:g}'", val);
+    std::visit(overloaded{[](const double val)
+                          { std::cout << std::format("'{:g}'", val); },
+                          [](const bool val)
+                          { std::cout << std::format("'{}'", val); },
+                          [](const nil val) { std::cout << "nil"; }},
+               val);
 }
 
 int debug::constant_instruction(std::string_view name, const chunk& chunk,
@@ -58,6 +71,18 @@ int debug::disassemble_instruction(const chunk& chunk, int offset)
             return simple_instruction("OP_RETURN", offset);
         case OpCode::OP_CONSTANT:
             return constant_instruction("OP_CONSTANT", chunk, offset);
+        case OpCode::OP_NIL:
+            return simple_instruction("OP_NIL", offset);
+        case OpCode::OP_TRUE:
+            return simple_instruction("OP_TRUE", offset);
+        case OpCode::OP_FALSE:
+            return simple_instruction("OP_FALSE", offset);
+        case OpCode::OP_EQUAL:
+            return simple_instruction("OP_EQUAL", offset);
+        case OpCode::OP_GREATER:
+            return simple_instruction("OP_GREATER", offset);
+        case OpCode::OP_LESS:
+            return simple_instruction("OP_LESS", offset);
         case OpCode::OP_ADD:
             return simple_instruction("OP_ADD", offset);
         case OpCode::OP_SUBTRACT:
@@ -66,6 +91,8 @@ int debug::disassemble_instruction(const chunk& chunk, int offset)
             return simple_instruction("OP_MULTIPLY", offset);
         case OpCode::OP_DIVIDE:
             return simple_instruction("OP_DIVIDE", offset);
+        case OpCode::OP_NOT:
+            return simple_instruction("OP_NOT", offset);
         case OpCode::OP_NEGATE:
             return simple_instruction("OP_NEGATE", offset);
         default:

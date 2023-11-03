@@ -39,4 +39,6 @@ ValueType chunk::get_constant(const_idx_t idx) const noexcept(false)
 
 std::size_t chunk::size() const { return code_.size(); }
 
+int chunk::line(std::size_t idx) const { return lines_.at(idx); }
+
 }  // namespace clox

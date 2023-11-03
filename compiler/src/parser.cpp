@@ -30,7 +30,7 @@ void parser::error_at(const token& token, std::string_view message)
     }
     else
     {
-        std::cerr << std::format("at {}", token.lexeme);
+        std::cerr << std::format(" at '{}'", token.lexeme);
     }
     std::cerr << std::format(": {}", message) << std::endl;
     had_error = true;

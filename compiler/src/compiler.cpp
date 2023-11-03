@@ -26,46 +26,51 @@ parse_rule compiler::rules_[] = {
                                             Precedence::TERM},
     [static_cast<int>(TokenType::PLUS)]  = {nullptr, &compiler::binary,
                                             Precedence::TERM},
-    [static_cast<int>(TokenType::SEMICOLON)] = {nullptr, nullptr,
-                                                Precedence::NONE},
-    [static_cast<int>(TokenType::SLASH)]     = {nullptr, &compiler::binary,
-                                                Precedence::FACTOR},
-    [static_cast<int>(TokenType::STAR)]      = {nullptr, &compiler::binary,
-                                                Precedence::FACTOR},
-    [static_cast<int>(TokenType::BANG)] = {nullptr, nullptr, Precedence::NONE},
-    [static_cast<int>(TokenType::BANG_EQUAL)] = {nullptr, nullptr,
+    [static_cast<int>(TokenType::SEMICOLON)]  = {nullptr, nullptr,
+                                                 Precedence::NONE},
+    [static_cast<int>(TokenType::SLASH)]      = {nullptr, &compiler::binary,
+                                                 Precedence::FACTOR},
+    [static_cast<int>(TokenType::STAR)]       = {nullptr, &compiler::binary,
+                                                 Precedence::FACTOR},
+    [static_cast<int>(TokenType::BANG)]       = {&compiler::unary, nullptr,
+                                                 Precedence::NONE},
+    [static_cast<int>(TokenType::BANG_EQUAL)] = {nullptr, &compiler::binary,
                                                  Precedence::NONE},
     [static_cast<int>(TokenType::EQUAL)] = {nullptr, nullptr, Precedence::NONE},
-    [static_cast<int>(TokenType::EQUAL_EQUAL)]   = {nullptr, nullptr,
+    [static_cast<int>(TokenType::EQUAL_EQUAL)]   = {nullptr, &compiler::binary,
+                                                    Precedence::EQUALITY},
+    [static_cast<int>(TokenType::GREATER)]       = {nullptr, &compiler::binary,
+                                                    Precedence::COMPARISON},
+    [static_cast<int>(TokenType::GREATER_EQUAL)] = {nullptr, &compiler::binary,
+                                                    Precedence::COMPARISON},
+    [static_cast<int>(TokenType::LESS)]          = {nullptr, &compiler::binary,
+                                                    Precedence::COMPARISON},
+    [static_cast<int>(TokenType::LESS_EQUAL)]    = {nullptr, &compiler::binary,
+                                                    Precedence::COMPARISON},
+    [static_cast<int>(TokenType::IDENTIFIER)]    = {nullptr, nullptr,
                                                     Precedence::NONE},
-    [static_cast<int>(TokenType::GREATER)]       = {nullptr, nullptr,
+    [static_cast<int>(TokenType::STRING)]        = {nullptr, nullptr,
                                                     Precedence::NONE},
-    [static_cast<int>(TokenType::GREATER_EQUAL)] = {nullptr, nullptr,
+    [static_cast<int>(TokenType::NUMBER)]        = {&compiler::number, nullptr,
                                                     Precedence::NONE},
-    [static_cast<int>(TokenType::LESS)] = {nullptr, nullptr, Precedence::NONE},
-    [static_cast<int>(TokenType::LESS_EQUAL)] = {nullptr, nullptr,
-                                                 Precedence::NONE},
-    [static_cast<int>(TokenType::IDENTIFIER)] = {nullptr, nullptr,
-                                                 Precedence::NONE},
-    [static_cast<int>(TokenType::STRING)]     = {nullptr, nullptr,
-                                                 Precedence::NONE},
-    [static_cast<int>(TokenType::NUMBER)]     = {&compiler::number, nullptr,
-                                                 Precedence::NONE},
     [static_cast<int>(TokenType::AND)]   = {nullptr, nullptr, Precedence::NONE},
     [static_cast<int>(TokenType::CLASS)] = {nullptr, nullptr, Precedence::NONE},
     [static_cast<int>(TokenType::ELSE)]  = {nullptr, nullptr, Precedence::NONE},
-    [static_cast<int>(TokenType::FALSE)] = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::FALSE)] = {&compiler::literal, nullptr,
+                                            Precedence::NONE},
     [static_cast<int>(TokenType::FOR)]   = {nullptr, nullptr, Precedence::NONE},
     [static_cast<int>(TokenType::FUN)]   = {nullptr, nullptr, Precedence::NONE},
     [static_cast<int>(TokenType::IF)]    = {nullptr, nullptr, Precedence::NONE},
-    [static_cast<int>(TokenType::NIL)]   = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::NIL)]   = {&compiler::literal, nullptr,
+                                            Precedence::NONE},
     [static_cast<int>(TokenType::OR)]    = {nullptr, nullptr, Precedence::NONE},
     [static_cast<int>(TokenType::PRINT)] = {nullptr, nullptr, Precedence::NONE},
     [static_cast<int>(TokenType::RETURN)] = {nullptr, nullptr,
                                              Precedence::NONE},
     [static_cast<int>(TokenType::SUPER)] = {nullptr, nullptr, Precedence::NONE},
     [static_cast<int>(TokenType::THIS)]  = {nullptr, nullptr, Precedence::NONE},
-    [static_cast<int>(TokenType::TRUE)]  = {nullptr, nullptr, Precedence::NONE},
+    [static_cast<int>(TokenType::TRUE)]  = {&compiler::literal, nullptr,
+                                            Precedence::NONE},
     [static_cast<int>(TokenType::VAR)]   = {nullptr, nullptr, Precedence::NONE},
     [static_cast<int>(TokenType::WHILE)] = {nullptr, nullptr, Precedence::NONE},
     [static_cast<int>(TokenType::ERROR)] = {nullptr, nullptr, Precedence::NONE},
@@ -124,12 +129,6 @@ void compiler::consume(TokenType type, std::string_view message)
 
 void compiler::expression() { parse_precedence(Precedence::ASSIGNMENT); }
 
-void compiler::groupping()
-{
-    expression();
-    consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
-}
-
 void compiler::number()
 {
     const auto value = std::strtod(parser_.previous.lexeme.data(), nullptr);
@@ -147,6 +146,9 @@ void compiler::unary()
     {
         case clox::TokenType::MINUS:
             emit_bytes(OpCode::OP_NEGATE);
+            break;
+        case clox::TokenType::BANG:
+            emit_bytes(OpCode::OP_NOT);
             break;
         default:
             return;  // Unreachable.
@@ -193,6 +195,24 @@ void compiler::binary()
 
     switch (operator_type)
     {
+        case TokenType::BANG_EQUAL:
+            emit_bytes(OpCode::OP_EQUAL, OpCode::OP_NOT);
+            break;
+        case TokenType::EQUAL_EQUAL:
+            emit_bytes(OpCode::OP_EQUAL);
+            break;
+        case TokenType::GREATER:
+            emit_bytes(OpCode::OP_GREATER);
+            break;
+        case TokenType::GREATER_EQUAL:
+            emit_bytes(OpCode::OP_LESS, OpCode::OP_NOT);
+            break;
+        case TokenType::LESS:
+            emit_bytes(OpCode::OP_LESS);
+            break;
+        case TokenType::LESS_EQUAL:
+            emit_bytes(OpCode::OP_GREATER, OpCode::OP_NOT);
+            break;
         case TokenType::PLUS:
             emit_bytes(OpCode::OP_ADD);
             break;
@@ -204,6 +224,24 @@ void compiler::binary()
             break;
         case TokenType::SLASH:
             emit_bytes(OpCode::OP_DIVIDE);
+            break;
+        default:
+            return;  // Unreachable.
+    }
+}
+
+void compiler::literal()
+{
+    switch (parser_.previous.type)
+    {
+        case TokenType::FALSE:
+            emit_bytes(OpCode::OP_FALSE);
+            break;
+        case TokenType::NIL:
+            emit_bytes(OpCode::OP_NIL);
+            break;
+        case TokenType::TRUE:
+            emit_bytes(OpCode::OP_TRUE);
             break;
         default:
             return;  // Unreachable.

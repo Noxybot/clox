@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stack>
+#include <string_view>
 
 #include "chunk.hpp"
 
@@ -28,6 +29,8 @@ class vm
 
   private:
     ValueType stack_pop();
+    template <class... Args>
+    void runtime_error(std::string_view format, Args&&... args);
 };
 
 }  // namespace clox
