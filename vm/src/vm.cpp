@@ -1,5 +1,6 @@
 #include "vm.hpp"
 
+#include <format>
 #include <iostream>
 #include <memory>
 #include <variant>
@@ -119,8 +120,8 @@ InterpretResult vm::run()
                 {
                     const auto b = std::get<std::shared_ptr<obj>>(stack_pop());
                     const auto a = std::get<std::shared_ptr<obj>>(stack_pop());
-                    stack_.push_back(*std::static_pointer_cast<obj_string>(a) +
-                                     *std::static_pointer_cast<obj_string>(b));
+                    stack_.push_back(static_cast<obj_string&>(*a) +
+                                     static_cast<obj_string&>(*b));
                 }
                 else if (std::holds_alternative<double>(peek(0)) &&
                          std::holds_alternative<double>(peek(1)))
@@ -178,9 +179,11 @@ ValueType vm::stack_pop()
 template <class... Args>
 void vm::runtime_error(std::string_view format, Args&&... args)
 {
+    std::cout << format << std::endl;
     const auto offset =
         static_cast<std::size_t>(ip_ - current_chunk_->get_instruction(0)) - 1;
-    int line = current_chunk_->line(offset);
+    const int line = current_chunk_->line(offset);
+    std::cerr << std::format("[line {}] in script.", line) << std::endl;
 }
 
 }  // namespace clox

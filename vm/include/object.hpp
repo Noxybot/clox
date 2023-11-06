@@ -24,7 +24,7 @@ class obj
 
 class obj_string : public obj
 {
-    std::shared_ptr<std::string> val_;
+    const std::string val_;
 
   public:
     explicit obj_string(std::string str);
