@@ -22,7 +22,7 @@ void chunk::write_chunk<>(std::byte code, int line)
 
 chunk::const_idx_t chunk::add_constant(ValueType val)
 {
-    constants_.push_back(val);
+    constants_.push_back(std::move(val));
     // TODO: overflow check?
     return constants_.size() - 1;
 }
@@ -32,7 +32,7 @@ const std::uint8_t* chunk::get_instruction(int idx) const noexcept(false)
     return &code_[idx];
 }
 
-ValueType chunk::get_constant(const_idx_t idx) const noexcept(false)
+const ValueType& chunk::get_constant(const_idx_t idx) const noexcept(false)
 {
     return constants_[idx];
 }

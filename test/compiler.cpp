@@ -2,8 +2,10 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <memory>
 
 #include "chunk.hpp"
+#include "object.hpp"
 
 using namespace clox;
 
@@ -123,4 +125,33 @@ TEST_CASE("compiler::logical", "[compiler]")
     CHECK(*chunk.get_instruction(14) == static_cast<int>(OpCode::OP_NOT));
 
     CHECK(*chunk.get_instruction(15) == static_cast<int>(OpCode::OP_RETURN));
+}
+
+TEST_CASE("compiler::string", "[compiler]")
+{
+    clox::compiler comp{R"("st" + "ri" + "ng")"};
+
+    const auto chunks_opt = comp.compile();
+    REQUIRE(chunks_opt.has_value());
+    const auto chunks = chunks_opt.value();
+    REQUIRE(chunks.size() == 1);
+    const auto chunk = std::move(chunks[0]);
+
+    CHECK(*chunk.get_instruction(0) == static_cast<int>(OpCode::OP_CONSTANT));
+    CHECK(*std::get<std::shared_ptr<obj>>(chunk.get_constant(0)) ==
+          obj_string("st"));
+
+    CHECK(*chunk.get_instruction(2) == static_cast<int>(OpCode::OP_CONSTANT));
+    CHECK(*std::get<std::shared_ptr<obj>>(chunk.get_constant(1)) ==
+          obj_string("ri"));
+
+    CHECK(*chunk.get_instruction(4) == static_cast<int>(OpCode::OP_ADD));
+
+    CHECK(*chunk.get_instruction(5) == static_cast<int>(OpCode::OP_CONSTANT));
+    CHECK(*std::get<std::shared_ptr<obj>>(chunk.get_constant(2)) ==
+          obj_string("ng"));
+
+    CHECK(*chunk.get_instruction(7) == static_cast<int>(OpCode::OP_ADD));
+
+    CHECK(*chunk.get_instruction(8) == static_cast<int>(OpCode::OP_RETURN));
 }

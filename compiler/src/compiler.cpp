@@ -49,7 +49,7 @@ parse_rule compiler::rules_[] = {
                                                     Precedence::COMPARISON},
     [static_cast<int>(TokenType::IDENTIFIER)]    = {nullptr, nullptr,
                                                     Precedence::NONE},
-    [static_cast<int>(TokenType::STRING)]        = {nullptr, nullptr,
+    [static_cast<int>(TokenType::STRING)]        = {&compiler::string, nullptr,
                                                     Precedence::NONE},
     [static_cast<int>(TokenType::NUMBER)]        = {&compiler::number, nullptr,
                                                     Precedence::NONE},
@@ -134,6 +134,14 @@ void compiler::number()
     const auto value = std::strtod(parser_.previous.lexeme.data(), nullptr);
     emit_constant(value);
 }
+
+void compiler::string()
+{
+    emit_constant(std::make_shared<obj_string>(
+        std::string{parser_.previous.lexeme.data() + 1,
+                    parser_.previous.lexeme.size() - 2}));
+}
+
 void compiler::unary()
 {
     const auto operator_type = parser_.previous.type;

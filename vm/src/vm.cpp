@@ -1,9 +1,12 @@
 #include "vm.hpp"
 
 #include <iostream>
+#include <memory>
+#include <variant>
 
 #include "chunk.hpp"
 #include "debug.hpp"
+#include "value.hpp"
 
 static bool is_falsey(const clox::ValueType& val)
 {
@@ -26,12 +29,14 @@ InterpretResult vm::interpret() { return run(); }
 InterpretResult vm::run()
 {
 #ifdef DEBUG_TRACE_EXECUTION
-    std::cout << "== run == \n" << std::endl;
+    std::cout << "== run == " << std::endl;
 #endif
 
     const auto read_byte  = [this] { return *ip_++; };
     const auto read_const = [this, read_byte]
     { return current_chunk_->get_constant(read_byte()); };
+    const auto peek = [this](const auto idx) -> const ValueType&
+    { return stack_[stack_.size() - idx - 1]; };
 
 #define BINARY_OP(type, op)                                             \
     do                                                                  \
@@ -88,9 +93,19 @@ InterpretResult vm::run()
                 break;
             case OpCode::OP_EQUAL:
             {
-                const auto b = stack_pop();
-                const auto a = stack_pop();
-                stack_.push_back(a == b);
+                const auto b      = stack_pop();
+                const auto a      = stack_pop();
+                const auto is_obj = [](const auto& val)
+                { return std::holds_alternative<std::shared_ptr<obj>>(val); };
+                if (is_obj(b) && is_obj(a))
+                {
+                    stack_.push_back(*std::get<std::shared_ptr<obj>>(b) ==
+                                     *std::get<std::shared_ptr<obj>>(a));
+                }
+                else
+                {
+                    stack_.push_back(a == b);
+                }
                 break;
             }
             case OpCode::OP_GREATER:
@@ -100,7 +115,26 @@ InterpretResult vm::run()
                 BINARY_OP(bool, <);
                 break;
             case OpCode::OP_ADD:
-                BINARY_OP(double, +);
+                if (is_string(peek(0)) && is_string(peek(1)))
+                {
+                    const auto b = std::get<std::shared_ptr<obj>>(stack_pop());
+                    const auto a = std::get<std::shared_ptr<obj>>(stack_pop());
+                    stack_.push_back(*std::static_pointer_cast<obj_string>(a) +
+                                     *std::static_pointer_cast<obj_string>(b));
+                }
+                else if (std::holds_alternative<double>(peek(0)) &&
+                         std::holds_alternative<double>(peek(1)))
+                {
+                    const auto b = std::get<double>(stack_pop());
+                    const auto a = std::get<double>(stack_pop());
+                    stack_.push_back(a + b);
+                }
+                else
+                {
+                    runtime_error(
+                        "Operands must be two numbers or two strings.");
+                    return InterpretResult::INTERPRET_RUNTIME_ERROR;
+                }
                 break;
             case OpCode::OP_SUBTRACT:
                 BINARY_OP(double, -);

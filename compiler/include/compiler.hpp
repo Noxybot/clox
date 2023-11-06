@@ -28,6 +28,7 @@ class compiler
     void              consume(TokenType type, std::string_view message);
     void              expression();
     void              number();
+    void              string();
     void              unary();
     void              parse_precedence(Precedence precedence);
     const parse_rule* get_rule(TokenType type) const;

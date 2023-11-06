@@ -2,6 +2,7 @@
 
 #include <format>
 #include <iostream>
+#include <memory>
 
 #include "chunk.hpp"
 
@@ -24,12 +25,13 @@ overloaded(Ts...) -> overloaded<Ts...>;
 
 void debug::print_value(const clox::ValueType& val)
 {
-    std::visit(overloaded{[](const double val)
-                          { std::cout << std::format("'{:g}'", val); },
-                          [](const bool val)
-                          { std::cout << std::format("'{}'", val); },
-                          [](const nil val) { std::cout << "nil"; }},
-               val);
+    std::visit(
+        overloaded{
+            [](const double val) { std::cout << std::format("'{:g}'", val); },
+            [](const bool val) { std::cout << std::format("'{}'", val); },
+            [](const nil val) { std::cout << "nil"; },
+            [](const std::shared_ptr<obj>& val) { val->print(); }},
+        val);
 }
 
 int debug::constant_instruction(std::string_view name, const chunk& chunk,

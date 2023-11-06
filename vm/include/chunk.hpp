@@ -38,7 +38,7 @@ class chunk
     void                write_chunk(T code, int line);
     const_idx_t         add_constant(ValueType val);
     const std::uint8_t* get_instruction(int idx) const noexcept(false);
-    ValueType           get_constant(const_idx_t idx) const noexcept(false);
+    const ValueType&    get_constant(const_idx_t idx) const noexcept(false);
     std::size_t         size() const;
     int                 line(std::size_t idx) const;
 
